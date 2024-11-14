@@ -1,0 +1,38 @@
+# Node.js/Express backend
+/backend/node_modules
+/backend/npm-debug.log
+/backend/yarn-debug.log*
+/backend/yarn-error.log*
+/backend/.env
+/backend/.env.local
+/backend/.env.development.local
+/backend/.env.test.local
+/backend/.env.production.local
+/backend/dist
+/backend/build
+
+# React frontend
+/frontend/node_modules
+/frontend/.env
+/frontend/.env.local
+/frontend/.env.development.local
+/frontend/.env.test.local
+/frontend/.env.production.local
+/frontend/build
+
+# Log files
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# npm package lock files (you might keep one depending on your preference)
+# /frontend/package-lock.json
+# /backend/package-lock.json
+
+# Other IDE and editor config files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
