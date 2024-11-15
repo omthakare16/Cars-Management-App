@@ -25,7 +25,7 @@ const EditCar = () => {
     const fetchCarDetails = async () => {
       const token = localStorage.getItem('token');
       try {
-        const response = await axios.get(`http://localhost:5000/api/cars/${id}`, {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/cars/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCar(response.data);
@@ -106,7 +106,7 @@ const EditCar = () => {
   
     const token = localStorage.getItem("token");
     try {
-      await axios.put(`http://localhost:5000/api/cars/${id}`, formData, {
+      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/cars/${id}`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",

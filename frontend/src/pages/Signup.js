@@ -38,7 +38,7 @@ const Signup = () => {
     setIsLoading(true);
 
     try {
-      await axios.post('http://localhost:5000/api/auth/register', { email, password });
+      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/auth/register`, { email, password });
       navigate('/login');
     } catch (error) {
       setError(error.response?.data?.message || 'Signup failed. Please try again.');

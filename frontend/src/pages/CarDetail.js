@@ -24,7 +24,7 @@ const CarDetail = () => {
     const fetchCarDetails = async () => {
       const token = localStorage.getItem('token');
       try {
-        const response = await axios.get(`http://localhost:5000/api/cars/${id}`, {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/cars/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCar(response.data);
@@ -42,7 +42,7 @@ const CarDetail = () => {
     setLoading(true);
     const token = localStorage.getItem('token');
     try {
-      await axios.delete(`http://localhost:5000/api/cars/${id}`, {
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/cars/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       navigate('/cars');
