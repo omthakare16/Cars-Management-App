@@ -123,3 +123,174 @@ router.get('/:id', authMiddleware, async (req, res) => {
 });
 
 module.exports = router;
+
+// Swagger Documentation
+/**
+ * @swagger
+ * tags:
+ *   name: Cars
+ *   description: Endpoints for managing cars and their associated images
+ */
+
+/**
+ * @swagger
+ * /cars:
+ *   post:
+ *     summary: Create a new car with images
+ *     tags: [Cars]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - description
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 description: Title of the car
+ *                 example: Tesla Model X
+ *               description:
+ *                 type: string
+ *                 description: Description of the car
+ *                 example: Fully electric luxury SUV
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Tags associated with the car
+ *                 example: ["electric", "luxury"]
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: Car images to upload
+ *     responses:
+ *       201:
+ *         description: Car created successfully
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /cars/{id}:
+ *   put:
+ *     summary: Update car details with new images
+ *     tags: [Cars]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the car to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 description: Title of the car
+ *                 example: Updated Tesla Model X
+ *               description:
+ *                 type: string
+ *                 description: Description of the car
+ *                 example: Updated description
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Tags associated with the car
+ *                 example: ["updated", "luxury"]
+ *               newImages:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: New car images to upload
+ *               existingImages:
+ *                 type: string
+ *                 description: JSON string of existing image URLs to retain
+ *     responses:
+ *       200:
+ *         description: Car updated successfully
+ *       404:
+ *         description: Car not found
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /cars/{id}:
+ *   delete:
+ *     summary: Delete a car and its images
+ *     tags: [Cars]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the car to delete
+ *     responses:
+ *       200:
+ *         description: Car deleted successfully
+ *       404:
+ *         description: Car not found
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /cars:
+ *   get:
+ *     summary: Get all cars for the authenticated user
+ *     tags: [Cars]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of cars
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /cars/{id}:
+ *   get:
+ *     summary: Get a specific car by ID
+ *     tags: [Cars]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the car to retrieve
+ *     responses:
+ *       200:
+ *         description: Car details
+ *       404:
+ *         description: Car not found
+ *       500:
+ *         description: Internal server error
+ */
+
