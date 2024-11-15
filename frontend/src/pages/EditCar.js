@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Upload, X, Save, Car, Loader } from 'lucide-react';
+import { Upload, X, Save, Car, Loader, ArrowLeft } from 'lucide-react';
 
 const EditCar = () => {
   const { id } = useParams();
@@ -93,33 +93,33 @@ const EditCar = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
-
+  
     const formData = new FormData();
-    formData.append('title', car.title);
-    formData.append('description', car.description);
-    formData.append('tags', car.tags);
-    formData.append('existingImages', JSON.stringify(existingImages));
-    
+    formData.append("title", car.title);
+    formData.append("description", car.description);
+    formData.append("tags", car.tags);
+    formData.append("existingImages", JSON.stringify(existingImages)); // Serialize existing images array
+  
     newImages.forEach((image) => {
-      formData.append('newImages', image);
+      formData.append("newImages", image); // Append each new image
     });
-
-    const token = localStorage.getItem('token');
+  
+    const token = localStorage.getItem("token");
     try {
       await axios.put(`http://localhost:5000/api/cars/${id}`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        }
+          "Content-Type": "multipart/form-data",
+        },
       });
       navigate(`/cars/${id}`);
     } catch (error) {
-      console.error('Error updating car:', error);
-      alert('Failed to update car. Please try again.');
+      console.error("Error updating car:", error);
+      alert("Failed to update car. Please try again.");
     } finally {
       setIsSaving(false);
     }
-  };
+  };  
 
   if (isLoading) {
     return (
@@ -133,7 +133,17 @@ const EditCar = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      
       <div className="max-w-3xl mx-auto">
+      <div className="mb-6">
+          <button
+            onClick={() => navigate(`/cars/${id}`)}
+            className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back to Car
+          </button>
+        </div>
         <div className="bg-white rounded-lg shadow px-6 py-8">
           <div className="flex items-center mb-6">
             <Car className="h-8 w-8 text-blue-600 mr-3" />
