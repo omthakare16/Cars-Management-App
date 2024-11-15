@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Upload, X, Save, Car, Loader } from 'lucide-react';
 
 const EditCar = () => {
-  const { id } = useParams();  // Get car ID from URL params
+  const { id } = useParams();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const [car, setCar] = useState({
     title: '',
@@ -12,10 +16,12 @@ const EditCar = () => {
     tags: '',
     images: []
   });
-  const [imageFiles, setImageFiles] = useState([]);
+
+  const [newImages, setNewImages] = useState([]);
+  const [newImagePreviews, setNewImagePreviews] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
 
   useEffect(() => {
-    // Fetch car details when the component mounts
     const fetchCarDetails = async () => {
       const token = localStorage.getItem('token');
       try {
@@ -23,8 +29,11 @@ const EditCar = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCar(response.data);
+        setExistingImages(response.data.images || []);
+        setIsLoading(false);
       } catch (error) {
         console.error('Error fetching car details:', error);
+        setIsLoading(false);
       }
     };
     fetchCarDetails();
@@ -36,86 +45,252 @@ const EditCar = () => {
   };
 
   const handleImageChange = (e) => {
-    setImageFiles(e.target.files);
+    const files = Array.from(e.target.files);
+    if (files.length + existingImages.length + newImages.length > 10) {
+      alert('Maximum 10 images allowed');
+      return;
+    }
+    
+    setNewImages(prev => [...prev, ...files]);
+    const newPreviews = files.map(file => URL.createObjectURL(file));
+    setNewImagePreviews(prev => [...prev, ...newPreviews]);
   };
 
-  const handleSubmit = (e) => {
+  const removeExistingImage = (index) => {
+    setExistingImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeNewImage = (index) => {
+    setNewImages(prev => prev.filter((_, i) => i !== index));
+    setNewImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleDragOver = (e) => {
     e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length + existingImages.length + newImages.length > 10) {
+      alert('Maximum 10 images allowed');
+      return;
+    }
+
+    setNewImages(prev => [...prev, ...files]);
+    const newPreviews = files.map(file => URL.createObjectURL(file));
+    setNewImagePreviews(prev => [...prev, ...newPreviews]);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
 
     const formData = new FormData();
     formData.append('title', car.title);
     formData.append('description', car.description);
     formData.append('tags', car.tags);
-
-    // Append image files to the form data
-    for (let i = 0; i < imageFiles.length; i++) {
-      formData.append('images', imageFiles[i]);
-    }
-
-    // Make PUT request to update car
-    const token = localStorage.getItem('token');
-    axios.put(`http://localhost:5000/api/cars/${id}`, formData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'multipart/form-data',
-      }
-    })
-    .then(response => {
-      alert('Car updated successfully!');
-      navigate(`/cars/${id}`);  // Redirect to car details page after edit
-    })
-    .catch(err => {
-      console.error('Error updating car:', err);
+    formData.append('existingImages', JSON.stringify(existingImages));
+    
+    newImages.forEach((image) => {
+      formData.append('newImages', image);
     });
+
+    const token = localStorage.getItem('token');
+    try {
+      await axios.put(`http://localhost:5000/api/cars/${id}`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        }
+      });
+      navigate(`/cars/${id}`);
+    } catch (error) {
+      console.error('Error updating car:', error);
+      alert('Failed to update car. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  if (!car) return <p>Loading...</p>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader className="h-8 w-8 text-blue-600 animate-spin" />
+      </div>
+    );
+  }
+
+  const totalImages = existingImages.length + newImages.length;
 
   return (
-    <div>
-      <h2>Edit Car</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="title">Title</label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={car.title}
-            onChange={handleChange}
-          />
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-white rounded-lg shadow px-6 py-8">
+          <div className="flex items-center mb-6">
+            <Car className="h-8 w-8 text-blue-600 mr-3" />
+            <h1 className="text-2xl font-bold text-gray-900">Edit Car Listing</h1>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Title</label>
+              <input
+                type="text"
+                name="title"
+                value={car.title}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Description</label>
+              <textarea
+                name="description"
+                value={car.description}
+                onChange={handleChange}
+                rows={4}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Tags</label>
+              <input
+                type="text"
+                name="tags"
+                value={car.tags}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                placeholder="Enter tags (comma-separated)"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Images ({totalImages}/10)
+              </label>
+              
+              {/* Existing Images */}
+              {existingImages.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Current Images</h3>
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                    {existingImages.map((image, index) => (
+                      <div key={`existing-${index}`} className="relative group">
+                        <img
+                          src={image}
+                          alt={`Car ${index + 1}`}
+                          className="h-24 w-full object-cover rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeExistingImage(index)}
+                          className="absolute top-1 right-1 p-1 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-4 w-4 text-gray-500" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* New Images Upload Area */}
+              <div
+                className={`border-2 border-dashed rounded-lg p-6 ${
+                  isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <div className="text-center">
+                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                  <div className="mt-2">
+                    <label htmlFor="images" className="cursor-pointer">
+                      <span className="text-blue-600 hover:text-blue-700">Upload new images</span>
+                      <span className="text-gray-500"> or drag and drop</span>
+                      <input
+                        id="images"
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                  <p className="text-sm text-gray-500">PNG, JPG, GIF up to 10 images total</p>
+                </div>
+              </div>
+
+              {/* New Image Previews */}
+              {newImagePreviews.length > 0 && (
+                <div className="mt-4">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">New Images</h3>
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                    {newImagePreviews.map((url, index) => (
+                      <div key={`new-${index}`} className="relative group">
+                        <img
+                          src={url}
+                          alt={`New ${index + 1}`}
+                          className="h-24 w-full object-cover rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeNewImage(index)}
+                          className="absolute top-1 right-1 p-1 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-4 w-4 text-gray-500" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end pt-4">
+              <button
+                type="button"
+                onClick={() => navigate(`/cars/${id}`)}
+                className="mr-4 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader className="animate-spin h-4 w-4 mr-2" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
         </div>
-        <div>
-          <label htmlFor="description">Description</label>
-          <textarea
-            id="description"
-            name="description"
-            value={car.description}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label htmlFor="tags">Tags</label>
-          <input
-            type="text"
-            id="tags"
-            name="tags"
-            value={car.tags}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label htmlFor="images">Images</label>
-          <input
-            type="file"
-            id="images"
-            name="images"
-            multiple
-            onChange={handleImageChange}
-          />
-        </div>
-        <button type="submit">Update Car</button>
-      </form>
+      </div>
     </div>
   );
 };
