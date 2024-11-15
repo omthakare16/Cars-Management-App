@@ -7,6 +7,7 @@ import CarDetail from './pages/CarDetail';
 import CreateCar from './pages/CreateCar';
 import EditCar from './pages/EditCar';  // Import EditCar component
 import PrivateRoute from './components/PrivateRoute';
+import SwaggerDocs from './pages/SwaggerDocs';
 
 function App() {
   return (
@@ -18,7 +19,8 @@ function App() {
         <Route path="/cars" element={<PrivateRoute><CarList /></PrivateRoute>} />
         <Route path="/cars/:id" element={<PrivateRoute><CarDetail /></PrivateRoute>} />
         <Route path="/create" element={<PrivateRoute><CreateCar /></PrivateRoute>} />
-        <Route path="/edit/:id" element={<PrivateRoute><EditCar /></PrivateRoute>} /> {/* New Edit route */}
+        <Route path="/edit/:id" element={<PrivateRoute><EditCar /></PrivateRoute>} />
+        <Route path="/api/docs" element={<SwaggerDocs />} />
       </Routes>
     </Router>
   );
